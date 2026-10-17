@@ -92,9 +92,14 @@ Do NOT include markdown backticks like \`\`\`json. Output ONLY raw parseable JSO
 export async function extractTimetableFromImage(
   base64Data: string,
   mimeType: string,
-  apiKey: string
+  apiKey?: string
 ): Promise<TimetableData> {
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey.trim()}`;
+  const effectiveKey = (apiKey || (import.meta as any).env?.VITE_GEMINI_API_KEY || '').trim();
+  if (!effectiveKey) {
+    throw new Error('Missing Gemini API key. Add VITE_GEMINI_API_KEY to your .env file to enable instant AI parsing.');
+  }
+
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${effectiveKey}`;
 
   const payload = {
     contents: [
