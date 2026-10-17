@@ -1,79 +1,57 @@
 import type { TimetableData, SubjectDetail, FacultyDetail, BatchDetail, ExamItem } from '../types';
 
-export const SYSTEM_PROMPT = `You are an expert academic timetable document intelligence parser.
-Your task is to analyze the uploaded timetable image or document and extract ALL academic data present on the sheet, including schedule, subject directory, faculty details, lab batch allotments, classroom numbers, and circular guidelines.
-
-Output MUST be ONLY valid raw JSON matching this exact schema:
+export const SYSTEM_PROMPT = `Analyze the timetable image/document. Extract all academic data into strict raw JSON:
 {
   "metadata": {
-    "title": "Full Schedule Title (e.g. B.Tech AI & Data Science Sem 6)",
-    "institution": "University / College / Institute Name",
-    "branch": "Branch or Department (e.g. Computer Science / AI-DS)",
-    "semester": "Semester (e.g. 6th Sem)",
-    "section": "Division or Section (e.g. QC 1)",
-    "academicYear": "Academic Year if listed (e.g. 2026-27)",
-    "classCoordinator": "Class Coordinator / Counselor Faculty Name if mentioned",
-    "coordinatorContact": "Coordinator email or phone if mentioned",
-    "baseRoom": "Base Classroom (e.g. N-207)",
-    "effectiveDate": "Effective Date / w.e.f. date"
+    "title": "Course / Branch / Sem",
+    "institution": "University / Institute name",
+    "branch": "Branch name",
+    "semester": "Semester",
+    "section": "Section / Division (e.g. QC 1)",
+    "baseRoom": "Classroom",
+    "classCoordinator": "Coordinator name",
+    "effectiveDate": "w.e.f date"
   },
-  "availableBatches": ["QC 1.1", "QC 1.2"],
+  "availableBatches": ["Batch 1", "Batch 2"],
   "subjects": [
     {
-      "code": "AIDS-601",
-      "name": "Natural Language Processing",
-      "shortName": "NLP",
-      "faculty": "Dr. Priya Sharma",
-      "initials": "PS",
+      "code": "Course Code",
+      "name": "Full Course Name",
+      "faculty": "Faculty Name",
+      "initials": "Initials",
       "credits": 4,
-      "weeklyHours": 5,
-      "type": "Lecture",
-      "room": "Lab 402"
+      "weeklyHours": 4,
+      "type": "Lecture"
     }
   ],
   "faculty": [
     {
       "id": "fac-1",
-      "name": "Dr. Priya Sharma",
-      "initials": "PS",
-      "designation": "Assistant Professor",
-      "subjects": ["Natural Language Processing"],
-      "cabin": "Cabin 210"
+      "name": "Faculty Name",
+      "initials": "Initials",
+      "subjects": ["Subject"]
     }
   ],
   "batches": [
     {
-      "id": "QC 1.1",
-      "name": "Batch 1",
-      "rollRange": "Roll 1 - 35",
-      "baseLab": "Lab 3"
+      "id": "Batch 1",
+      "name": "Batch Name",
+      "rollRange": "Roll numbers"
     }
   ],
-  "exams": [
-    {
-      "id": "ex-1",
-      "date": "24-Oct-2026",
-      "time": "02:00 PM - 04:00 PM",
-      "subject": "Natural Language Processing",
-      "code": "AIDS-601",
-      "room": "Exam Block"
-    }
-  ],
-  "guidelines": [
-    "Minimum 75% attendance required",
-    "Lab journals must be signed weekly"
-  ],
+  "exams": [],
+  "guidelines": [],
   "days": {
     "monday": [
       {
         "id": "mon-1",
         "start": "09:00",
         "end": "10:00",
-        "subject": "Natural Language Processing",
+        "subject": "Subject Name",
         "type": "Lecture",
-        "room": "Room 402",
-        "teacher": "Dr. Priya Sharma",
-        "code": "AIDS-601",
+        "room": "Room",
+        "teacher": "Teacher",
+        "code": "Code",
         "batch": "ALL",
         "batches": []
       }
@@ -86,8 +64,87 @@ Output MUST be ONLY valid raw JSON matching this exact schema:
     "sunday": []
   }
 }
+Rules:
+- Types: Lecture, Lab, Tutorial, Break, Exam.
+- Start and end times in 24hr or 12hr format.
+- Output ONLY valid JSON with no markdown wrapping.`;
 
-Do NOT include markdown backticks like \`\`\`json. Output ONLY raw parseable JSON.`;
+/**
+ * Optimizes an image client-side before sending to Gemini:
+ * Rescales to max 1400px and compresses to JPEG ~0.8 quality.
+ * Shrinks 10-15MB smartphone photos to ~150KB for 100x faster network upload!
+ */
+export async function optimizeImageForAi(file: File): Promise<{ base64: string; mimeType: string }> {
+  // If PDF, read directly
+  if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const res = reader.result as string;
+        const match = res.match(/^data:(.*);base64,(.*)$/);
+        if (match) resolve({ mimeType: match[1], base64: match[2] });
+        else reject(new Error('Failed to read PDF'));
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  return new Promise((resolve) => {
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      const canvas = document.createElement('canvas');
+      const maxDim = 1400; // Optimal for text reading with minimal byte weight
+      let { width, height } = img;
+
+      if (width > maxDim || height > maxDim) {
+        const ratio = Math.min(maxDim / width, maxDim / height);
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+
+      if (ctx) {
+        ctx.drawImage(img, 0, 0, width, height);
+        // High quality JPEG compression (typically 120KB - 200KB)
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+        const match = compressedDataUrl.match(/^data:(.*);base64,(.*)$/);
+        if (match) {
+          resolve({ mimeType: 'image/jpeg', base64: match[2] });
+          return;
+        }
+      }
+
+      // Fallback if canvas fails
+      const reader = new FileReader();
+      reader.onload = () => {
+        const res = reader.result as string;
+        const match = res.match(/^data:(.*);base64,(.*)$/);
+        resolve({ mimeType: match ? match[1] : file.type, base64: match ? match[2] : '' });
+      };
+      reader.readAsDataURL(file);
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      const reader = new FileReader();
+      reader.onload = () => {
+        const res = reader.result as string;
+        const match = res.match(/^data:(.*);base64,(.*)$/);
+        resolve({ mimeType: match ? match[1] : file.type, base64: match ? match[2] : '' });
+      };
+      reader.readAsDataURL(file);
+    };
+
+    img.src = objectUrl;
+  });
+}
 
 export async function extractTimetableFromImage(
   base64Data: string,
@@ -117,7 +174,8 @@ export async function extractTimetableFromImage(
     ],
     generationConfig: {
       response_mime_type: "application/json",
-      temperature: 0.1
+      temperature: 0.1,
+      max_output_tokens: 4000
     }
   };
 
@@ -146,7 +204,6 @@ export async function extractTimetableFromImage(
   // Normalize structure
   const now = new Date().toISOString();
 
-  // Auto-synthesize subjects and faculty if AI omitted them
   const subjects: SubjectDetail[] = parsed.subjects || [];
   const faculty: FacultyDetail[] = parsed.faculty || [];
   const batches: BatchDetail[] = parsed.batches || [];

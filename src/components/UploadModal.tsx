@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { UploadCloud, Camera, FileText, CheckCircle2, RotateCw, Loader2, Sparkles, X, ClipboardList, Cpu, Settings2, ArrowRight, Wand2 } from 'lucide-react';
 import { extractTimetableLocally, parseRawTimetableText } from '../utils/localOcrExtractor';
-import { extractTimetableFromImage } from '../utils/geminiExtractor';
+import { extractTimetableFromImage, optimizeImageForAi } from '../utils/geminiExtractor';
 import type { TimetableData } from '../types';
 import { DEMO_TIMETABLE } from '../data/demoTimetable';
 
@@ -89,23 +89,19 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onTim
 
       // Cloud Gemini AI (if key is set in .env or advanced settings)
       if (geminiApiKey.trim()) {
-        setProgressStatus('Using Multimodal AI to parse document...');
-        setProgressPercent(40);
+        setProgressStatus('Optimizing image size for fast upload...');
+        setProgressPercent(25);
 
-        const reader = new FileReader();
-        const base64Promise = new Promise<{ base64: string; mimeType: string }>((resolve, reject) => {
-          reader.onload = () => {
-            const res = reader.result as string;
-            const match = res.match(/^data:(.*);base64,(.*)$/);
-            if (match) resolve({ mimeType: match[1], base64: match[2] });
-            else reject(new Error('Invalid file format'));
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(selectedFile);
-        });
+        const { base64, mimeType } = await optimizeImageForAi(selectedFile);
 
-        const { base64, mimeType } = await base64Promise;
+        setProgressStatus('Gemini AI analyzing timetable...');
+        setProgressPercent(65);
+
         const parsedData = await extractTimetableFromImage(base64, mimeType, geminiApiKey);
+
+        setProgressStatus('Complete! Applying schedule...');
+        setProgressPercent(100);
+
         onTimetableLoaded(parsedData);
         onClose();
         return;
