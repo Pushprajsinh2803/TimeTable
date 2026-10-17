@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { TimetableData, DayKey, SubjectDetail, TimetableItem } from './types';
 import { DEMO_TIMETABLE } from './data/demoTimetable';
+import { PU_1B_CSE_AIDS_6_TIMETABLE } from './data/pu1bCseAids6';
 import { calculateActiveSchedule, getCurrentDayKey } from './utils/scheduleCalculator';
 import { Header } from './components/Header';
 import { LiveTimerBanner } from './components/LiveTimerBanner';
@@ -23,12 +24,16 @@ export function App() {
     const saved = localStorage.getItem('user_active_timetable');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        // If user already had demo, upgrade them to this official timetable
+        if (parsed.metadata?.id !== 'demo-aids-sem6') {
+          return parsed;
+        }
       } catch (e) {
         console.error('Failed to parse saved timetable', e);
       }
     }
-    return DEMO_TIMETABLE;
+    return PU_1B_CSE_AIDS_6_TIMETABLE;
   });
 
   const [activeTab, setActiveTab] = useState<MainNavTab>('today');
@@ -90,6 +95,12 @@ export function App() {
     }
   };
 
+  const handleLoadPuSchedule = () => {
+    setTimetable(PU_1B_CSE_AIDS_6_TIMETABLE);
+    setSelectedBatch('ALL');
+    setSelectedDay(getCurrentDayKey());
+  };
+
   return (
     <div className="min-h-screen bg-[#080d1a] text-slate-100 flex flex-col font-sans selection:bg-indigo-500/30 pb-20">
       {/* Sticky Header matching pu-timetable */}
@@ -101,6 +112,7 @@ export function App() {
         onOpenUpload={() => setIsUploadOpen(true)}
         onExportJSON={handleExportJSON}
         onResetDemo={handleResetDemo}
+        onLoadPuSchedule={handleLoadPuSchedule}
         currentTime={currentTime}
       />
 

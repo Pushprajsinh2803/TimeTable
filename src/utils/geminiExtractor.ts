@@ -5,25 +5,25 @@ Analyze the timetable image or PDF document. Extract all academic data into stri
 
 {
   "metadata": {
-    "title": "Full Academic Title (e.g. B.Tech Computer Science & AI-DS Sem 6)",
-    "institution": "University / Institute name (e.g. Parul Institute of Engineering & Technology)",
-    "branch": "Branch name (e.g. Computer Science & AI-DS)",
-    "semester": "Semester (e.g. 6th Semester)",
-    "section": "Section or Division (e.g. Division QC 1)",
+    "title": "Full Academic Title (e.g. 1B_CSE AIDS 6 — B.Tech CSE (AI & Data Science))",
+    "institution": "University / Institute name (e.g. Parul Institute of Engineering & Technology, Parul University)",
+    "branch": "Branch name (e.g. B.Tech Computer Science Engineering Artificial Intelligence with Data Science)",
+    "semester": "Semester (e.g. 1st Semester)",
+    "section": "Section or Division (e.g. 1B_CSE-AIDS 6)",
     "academicYear": "Academic Year (e.g. 2026-27)",
-    "baseRoom": "Base Classroom (e.g. Room N-207, Block A)",
-    "classCoordinator": "Class Coordinator / Faculty Mentor Name",
-    "coordinatorContact": "Coordinator Email or Phone",
-    "effectiveDate": "w.e.f Date (e.g. 15 Jan 2026)"
+    "baseRoom": "Base Classroom (e.g. N-108, N-109)",
+    "classCoordinator": "Time Table Coordinators (e.g. Dr. Manish R. Betheja & Dr. Chirag R. Trivedi)",
+    "coordinatorContact": "Student Rep / MFT Email (e.g. mohdmaaz.shaikh34635@paruluniversity.ac.in)",
+    "effectiveDate": "Effective from date (e.g. 20-07-2026)"
   },
-  "availableBatches": ["QC 1.1", "QC 1.2"],
+  "availableBatches": ["1", "2"],
   "subjects": [
     {
-      "code": "Course Code (e.g. 303105342)",
-      "name": "Full Course Name (e.g. Natural Language Processing)",
-      "shortName": "Short Code (e.g. NLP)",
-      "faculty": "FULL Faculty Name (e.g. Dr. Priya Sharma)",
-      "initials": "Initials (e.g. PS)",
+      "code": "Course Code (e.g. 03010501PC01)",
+      "name": "Full Course Name (e.g. Web Designing)",
+      "shortName": "Short Code (e.g. WD Lecture)",
+      "faculty": "FULL Faculty Name (e.g. BINISHA MAKWANA)",
+      "initials": "Initials (e.g. BM)",
       "credits": 4,
       "weeklyHours": 5,
       "type": "Lecture",
@@ -33,62 +33,43 @@ Analyze the timetable image or PDF document. Extract all academic data into stri
   "faculty": [
     {
       "id": "fac-1",
-      "name": "Full Faculty Name with Title (e.g. Dr. Nilesh Kumar Jain, Prof. Rajesh N. Salvi)",
-      "initials": "Initials (e.g. NKJ, RNS)",
-      "designation": "Designation (e.g. Associate Professor / Assistant Professor)",
+      "name": "Full Faculty Name with Title (e.g. Dr. NILESH KUMAR JAIN, BINISHA MAKWANA, Banoth Ravindar, Mahit Jain, Rahul Moud, Mrs. Sonal Tiwari)",
+      "initials": "Initials (e.g. NKJ, BM, BR, MJ, RM, ST)",
+      "designation": "Designation if present",
       "subjects": ["Subjects or labs taught by this teacher"],
-      "email": "Official email if present",
-      "cabin": "Cabin / Office location if present"
+      "email": "Official email ID (e.g. binisaben.makwana31526@paruluniversity.ac.in)",
+      "cabin": "Cabin / Lab location if present"
     }
   ],
   "batches": [
     {
-      "id": "QC 1.1",
-      "name": "Batch 1 (QC 1.1)",
-      "rollRange": "Roll numbers if mentioned",
-      "baseLab": "Assigned lab if mentioned"
-    }
-  ],
-  "exams": [
+      "id": "1",
+      "name": "Batch 1 (1B_CSE-AIDS 6.1)"
+    },
     {
-      "id": "exam-1",
-      "date": "24 Sep 2026",
-      "time": "02:45 PM – 04:15 PM",
-      "subject": "Subject Name",
-      "code": "Course Code",
-      "room": "Exam Room"
+      "id": "2",
+      "name": "Batch 2 (1B_CSE-AIDS 6.2)"
     }
   ],
+  "exams": [],
   "guidelines": [
-    "Important circular guideline or notice (e.g. 75% attendance mandatory, reporting time, lab rules)"
+    "Recess times: 11:20 AM - 12:20 PM (Lunch) & 02:10 PM - 02:30 PM (Tea break)",
+    "Minimum 75% attendance mandatory in lectures and laboratory sessions."
   ],
   "days": {
     "monday": [
       {
         "id": "mon-1",
         "start": "09:30",
-        "end": "10:30",
-        "subject": "Subject Name",
+        "end": "10:25",
+        "subject": "Web Designing",
         "type": "Lecture",
-        "room": "Room N-207",
-        "teacher": "FULL Faculty Name (NOT just initials!)",
-        "initials": "Initials (e.g. RNS)",
-        "code": "Course Code",
+        "room": "N-108",
+        "teacher": "BINISHA MAKWANA",
+        "initials": "BM",
+        "code": "03010501PC01",
         "batch": "ALL",
-        "batches": [
-          {
-            "id": "QC 1.1",
-            "sub": "NLP Lab",
-            "room": "Lab 3",
-            "teacher": "FULL Faculty Name"
-          },
-          {
-            "id": "QC 1.2",
-            "sub": "CV Lab",
-            "room": "Lab 5",
-            "teacher": "FULL Faculty Name"
-          }
-        ]
+        "batches": []
       }
     ],
     "tuesday": [],
@@ -100,21 +81,66 @@ Analyze the timetable image or PDF document. Extract all academic data into stri
   }
 }
 
-CRITICAL EXTRACTION RULES:
-1. FACULTY MAPPING IS MANDATORY:
-   - In university timetable circulars, table cells often have short initials (e.g. RNS, ZJ, RM, NKJ, SP, BR, AP).
-   - AT THE BOTTOM, FOOTER, OR SIDE OF THE DOCUMENT, there is ALWAYS a Faculty Legend / Subject Table that maps these initials to their FULL names (e.g. RNS -> Prof. Rajesh Narendra Salvi).
-   - YOU MUST CROSS-REFERENCE every cell's teacher initials with this legend table and populate the full teacher name in the "teacher" field!
-   - NEVER leave "teacher" empty or blank if initials or names exist in the cell or legend. If no full name is found, put the initials in "teacher".
-   - Extract ALL faculty members found in the legend into the "faculty" array.
-2. SUBJECTS LIST:
-   - Extract all courses with code, full name, credits, and faculty.
-3. LAB BATCH ALLOCATIONS:
-   - When a slot is divided into batches (e.g. Batch 1 / Batch 2 or QC 1.1 / QC 1.2), extract each sub-session in the "batches" array with its respective room, subject, and teacher.
-4. TIME FORMATS:
-   - Use standard 24h format (e.g. "09:30", "14:15") or 12h format (e.g. "09:30 AM", "02:15 PM").
-5. OUTPUT:
-   - Output ONLY valid JSON. No conversational text, no markdown backticks, no explanations.`;
+PARUL UNIVERSITY TIMETABLE PATTERN SPECIFICATION & EXTRACTION RULES:
+
+1. CELL NOTATION & DECODING RULES:
+   - FORMAT A: Lecture for Full Class:
+     Syntax: "<DIVISION>:<SUBJECT_SHORT>:(<STAFF_INITIALS>):<ROOM>"
+     Examples:
+     • "CSE-AIDS 6:WD:(BM):N-108" ->
+       Subject: "Web Designing" (Short: "WD"), Teacher: "BINISHA MAKWANA" (Initials: "BM"), Room: "N-108", Type: "Lecture"
+     • "CSE-AIDS 6:PPS:(NKJ):N-107" ->
+       Subject: "Programming for Problem Solving" (Short: "PPS"), Teacher: "Dr. NILESH KUMAR JAIN" (Initials: "NKJ"), Room: "N-107", Type: "Lecture"
+     • "CSE-AIDS 6:EEE:(MJ):N-108" ->
+       Subject: "Electrical and Electronics Engineering", Teacher: "Mahit Jain" (Initials: "MJ"), Room: "N-108", Type: "Lecture"
+     • "CSE-AIDS 6:PE:(RM):N-108" ->
+       Subject: "Prompt Engineering", Teacher: "Rahul Moud" (Initials: "RM"), Room: "N-108", Type: "Lecture"
+     • "CSE-AIDS 6:Calculus:(L1):N-108" ->
+       Subject: "Calculus", Teacher: "Calculus Faculty (L1)", Room: "N-108", Type: "Lecture"
+     • "CSE-AIDS 6:PCS TUTO:(ST):N-109" ->
+       Subject: "Principles of Communication Skills", Teacher: "Mrs. Sonal Tiwari" (Initials: "ST"), Room: "N-109", Type: "Tutorial"
+
+   - FORMAT B: Lab Sessions Divided by Batch (Parallel Lab Sessions):
+     Syntax: "<DIVISION>:<BATCH_NO>:<SUBJECT_SHORT>:(<STAFF_INITIALS>):<ROOM>"
+     When multiple batches appear in the same slot (or 2 consecutive periods):
+     Example:
+       "CSE-AIDS 6:1:WD:(BR):LAB-210"
+       "CSE-AIDS 6:2:EEE:(MJ):A-208"
+     Extract into "batches" array:
+       batches: [
+         { "id": "1", "sub": "Web Designing Laboratory", "room": "LAB-210", "teacher": "Banoth Ravindar" },
+         { "id": "2", "sub": "Electrical and Electronics Engineering Laboratory", "room": "A-208", "teacher": "Mahit Jain" }
+       ]
+     Subject for the parent item can be "Parallel Lab Session (Batches 1 & 2)".
+
+   - FORMAT C: Recess & Free Study Blocks:
+     • "LIBRARY/SELF STUDY" or "CSE-AIDS 6:1:LIBRARY/SELF STUDY" -> Type: "Break", Subject: "Library / Self Study"
+     • "RECESS TIME: 11:20 - 12:20" -> Type: "Break", Subject: "Recess (Lunch Break)"
+     • "RECESS TIME: 02:10 - 02:30" -> Type: "Break", Subject: "Recess (Tea Break)"
+     • "HOLIDAY" -> Type: "Break", Subject: "Holiday"
+
+2. BOTTOM LEGEND TABLE (7 COLUMNS):
+   University circulars have a 7-column table at the bottom:
+   "SUBJECT CODE | SUJECT INITIALS | SUBJECT FULL NAME | STAFF INITIALS | STAFF NAME | STAFF EMAIL ID | MIS ID"
+   • You MUST extract EVERY row in this table.
+   • Map each staff member's INITIALS to their FULL NAME and OFFICIAL EMAIL ID.
+   • Populate "faculty":
+     [
+       { "id": "fac-1", "name": "BINISHA MAKWANA", "initials": "BM", "email": "binisaben.makwana31526@paruluniversity.ac.in", "subjects": ["Web Designing"] },
+       { "id": "fac-2", "name": "Banoth Ravindar", "initials": "BR", "email": "ravindar.banoth33153@paruluniversity.ac.in", "subjects": ["Web Designing Laboratory"] },
+       { "id": "fac-3", "name": "Mahit Jain", "initials": "MJ", "email": "mahit.jain30359@paruluniversity.ac.in", "subjects": ["Electrical and Electronics Engineering"] },
+       { "id": "fac-4", "name": "Dr. NILESH KUMAR JAIN", "initials": "NKJ", "email": "nilesh.jain38400@paruluniversity.ac.in", "subjects": ["Programming for Problem Solving"] },
+       { "id": "fac-5", "name": "Rahul Moud", "initials": "RM", "email": "rahulkumar.moud32628@paruluniversity.ac.in", "subjects": ["Prompt Engineering"] },
+       { "id": "fac-6", "name": "Mrs. Sonal Tiwari", "initials": "ST", "email": "sonal.tiwari47018@paruluniversity.ac.in", "subjects": ["Principles of Communication Skills"] }
+     ]
+
+3. METADATA EXTRACTION:
+   - Extract Time Table Coordinators (e.g. Dr. Manish R. Betheja, Dr. Chirag R. Trivedi)
+   - Extract Class Representative (e.g. SHAIKH MOHD MAAZ NAIMODDIN, email: mohdmaaz.shaikh34635@paruluniversity.ac.in)
+   - Extract base classrooms (N-108, N-109) and lab rooms (LAB-209, LAB-210, LAB-212, A-204, A-208).
+
+4. STRICT OUTPUT REQUIREMENT:
+   Output ONLY valid JSON matching this schema. No markdown backticks, no conversational preamble.`;
 
 /**
  * Optimizes an image client-side before sending to Gemini:
@@ -292,11 +318,45 @@ export async function extractTimetableFromImage(
     }
   });
 
+  // Known standard subject code map for Parul University & AI-DS
+  const puSubjectMap: Record<string, string> = {
+    'WD': 'Web Designing',
+    'WD LECTURE': 'Web Designing',
+    'WD LAB': 'Web Designing Laboratory',
+    'EEE': 'Electrical and Electronics Engineering',
+    'EEE LECTURE': 'Electrical and Electronics Engineering',
+    'EEE LAB': 'Electrical and Electronics Engineering Laboratory',
+    'PPS': 'Programming for Problem Solving',
+    'PPS LECTURE': 'Programming for Problem Solving',
+    'PPS LAB': 'Programming for Problem Solving Laboratory',
+    'PE': 'Prompt Engineering',
+    'PCS': 'Principles of Communication Skills',
+    'PCS TUTO': 'Principles of Communication Skills (Tutorial)',
+    'CALCULUS': 'Calculus'
+  };
+
   for (const day of dayKeys) {
     const items: any[] = rawDays[day] || [];
     normalizedDays[day] = items.map((item, idx) => {
+      let resolvedSubject = (item.subject || 'Lecture').trim();
+      let resolvedRoom = (item.room || '').trim();
       let resolvedTeacher = (item.teacher || '').trim();
       let resolvedInitials = (item.initials || '').trim();
+
+      // Check if subject is raw PU cell syntax: "CSE-AIDS 6:WD:(BM):N-108"
+      const cellMatch = resolvedSubject.match(/^(?:[A-Za-z0-9\-_ ]+):([A-Za-z0-9\-_ /]+):\(([A-Za-z0-9]+)\):([A-Za-z0-9\-_]+)$/i);
+      if (cellMatch) {
+        const [, subCode, inits, rm] = cellMatch;
+        resolvedSubject = subCode.trim();
+        if (!resolvedInitials) resolvedInitials = inits.trim();
+        if (!resolvedRoom) resolvedRoom = rm.trim();
+      }
+
+      // Check if subject is an abbreviation from the legend
+      const upperSub = resolvedSubject.toUpperCase();
+      if (puSubjectMap[upperSub]) {
+        resolvedSubject = puSubjectMap[upperSub];
+      }
 
       // Check if teacher is just initials (e.g. 2-5 uppercase chars)
       const isTeacherInitials = /^[A-Z]{2,5}$/.test(resolvedTeacher);
@@ -321,16 +381,37 @@ export async function extractTimetableFromImage(
             subjects: new Set()
           });
         }
-        if (item.subject) {
-          discoveredFaculty.get(key)!.subjects.add(item.subject);
+        if (resolvedSubject) {
+          discoveredFaculty.get(key)!.subjects.add(resolvedSubject);
         }
       }
 
       // Resolve batches inside lab periods
       const resolvedBatches = Array.isArray(item.batches)
         ? item.batches.map((b: any) => {
+            let bSub = (b.sub || resolvedSubject || 'Practical').trim();
+            let bRoom = (b.room || resolvedRoom || '').trim();
             let bTeacher = (b.teacher || '').trim();
-            const bInitials = /^[A-Z]{2,5}$/.test(bTeacher) ? bTeacher : '';
+            let bInitials = (b.initials || '').trim();
+            let bId = (b.id || 'Batch').trim();
+
+            // Deconstruct batch string if raw e.g. "CSE-AIDS 6:1:WD:(BR):LAB-210"
+            const bCellMatch = bSub.match(/^(?:[A-Za-z0-9\-_ ]+):(\d+):([A-Za-z0-9\-_ /]+):\(([A-Za-z0-9]+)\):([A-Za-z0-9\-_]+)$/i);
+            if (bCellMatch) {
+              const [, batchNo, subCode, inits, rm] = bCellMatch;
+              bId = batchNo;
+              bSub = subCode.trim();
+              bInitials = inits.trim();
+              bRoom = rm.trim();
+            }
+
+            if (puSubjectMap[bSub.toUpperCase()]) {
+              bSub = puSubjectMap[bSub.toUpperCase()];
+            }
+
+            if (/^[A-Z]{2,5}$/.test(bTeacher) && !bInitials) {
+              bInitials = bTeacher;
+            }
             if (bInitials && initialsToName.has(bInitials.toUpperCase())) {
               bTeacher = initialsToName.get(bInitials.toUpperCase())!;
             }
@@ -340,16 +421,16 @@ export async function extractTimetableFromImage(
                 discoveredFaculty.set(bKey, {
                   name: bTeacher,
                   initials: bInitials,
-                  subjects: new Set([b.sub || item.subject])
+                  subjects: new Set([bSub])
                 });
-              } else if (b.sub) {
-                discoveredFaculty.get(bKey)!.subjects.add(b.sub);
+              } else if (bSub) {
+                discoveredFaculty.get(bKey)!.subjects.add(bSub);
               }
             }
             return {
-              id: b.id || 'Batch',
-              sub: b.sub || item.subject || 'Practical',
-              room: b.room || item.room || '',
+              id: bId,
+              sub: bSub,
+              room: bRoom,
               teacher: bTeacher || resolvedTeacher
             };
           })
@@ -359,9 +440,9 @@ export async function extractTimetableFromImage(
         id: item.id || `${day}-${idx + 1}`,
         start: item.start || '09:00',
         end: item.end || '10:00',
-        subject: item.subject || 'Lecture',
-        type: item.type || 'Lecture',
-        room: item.room || '',
+        subject: resolvedSubject,
+        type: item.type || (resolvedSubject.toLowerCase().includes('lab') ? 'Lab' : 'Lecture'),
+        room: resolvedRoom,
         teacher: resolvedTeacher,
         initials: resolvedInitials,
         code: item.code || '',

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, UploadCloud, Download, RotateCcw } from 'lucide-react';
+import { Calendar, UploadCloud, Download, RotateCcw, BookOpen } from 'lucide-react';
 import type { ScheduleMetadata } from '../types';
 
 interface HeaderProps {
@@ -10,6 +10,7 @@ interface HeaderProps {
   onOpenUpload: () => void;
   onExportJSON: () => void;
   onResetDemo: () => void;
+  onLoadPuSchedule?: () => void;
   currentTime: Date;
 }
 
@@ -21,34 +22,53 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenUpload,
   onExportJSON,
   onResetDemo,
+  onLoadPuSchedule,
   currentTime
 }) => {
+  const isPuSchedule = metadata.id === 'pu-1b-cse-aids-6';
+
   return (
     <header className="sticky top-0 z-40 bg-[#080d1a]/90 backdrop-blur-xl border-b border-slate-800/80 px-4 py-3 shadow-xs">
-      <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
+      <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
         {/* Brand & Subtitle */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 min-w-0">
           <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/30 shrink-0">
             <Calendar size={20} />
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
               <h1 className="text-base font-black tracking-tight text-white m-0">TimeTable</h1>
               <span className="text-[10px] px-1.5 py-0.2 font-extrabold uppercase bg-indigo-500/20 text-indigo-400 rounded-md border border-indigo-500/30">
                 Live
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 truncate max-w-[170px] sm:max-w-xs">
-              {metadata.branch || metadata.title}
+            <p className="text-[11px] text-slate-400 truncate max-w-[170px] sm:max-w-xs md:max-w-md">
+              {metadata.section || metadata.branch || metadata.title}
             </p>
           </div>
         </div>
 
         {/* Center / Right Controls */}
         <div className="flex items-center gap-2">
+          {/* Quick Schedule Preset Switcher */}
+          {onLoadPuSchedule && (
+            <button
+              onClick={isPuSchedule ? onResetDemo : onLoadPuSchedule}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition hidden md:flex items-center gap-1.5 cursor-pointer border ${
+                isPuSchedule
+                  ? 'bg-indigo-950/80 text-indigo-300 border-indigo-800/80 hover:bg-indigo-900/60'
+                  : 'bg-slate-900/90 text-slate-300 border-slate-800 hover:text-white'
+              }`}
+              title={isPuSchedule ? 'Switch to Sem 6 Demo' : 'Switch to 1B_CSE-AIDS 6 (Parul University)'}
+            >
+              <BookOpen size={13} className="text-indigo-400" />
+              <span>{isPuSchedule ? '1B_CSE-AIDS 6' : 'Load Parul Timetable'}</span>
+            </button>
+          )}
+
           {/* Quick Header Batch Switcher */}
           {availableBatches.length > 0 && (
-            <div className="hidden md:flex items-center gap-1 bg-slate-900/90 border border-slate-800 p-1 rounded-xl">
+            <div className="hidden lg:flex items-center gap-1 bg-slate-900/90 border border-slate-800 p-1 rounded-xl">
               <button
                 onClick={() => onChangeBatch('ALL')}
                 className={`px-2 py-0.5 rounded-lg text-[11px] font-bold transition cursor-pointer ${
@@ -88,7 +108,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-indigo-600/30 transition cursor-pointer active:scale-95"
           >
             <UploadCloud size={15} />
-            <span className="hidden sm:inline">Upload New</span>
+            <span className="hidden sm:inline">Upload Timetable</span>
             <span className="sm:hidden">Upload</span>
           </button>
 
