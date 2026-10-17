@@ -1,13 +1,19 @@
 import { useState, useEffect } from 'react';
-import { UploadCloud, Calendar, Sparkles, Download, RotateCcw, ShieldCheck, HelpCircle } from 'lucide-react';
-import type { TimetableData, DayKey } from './types';
+import { UploadCloud, Calendar, Sparkles, Download, RotateCcw, ShieldCheck, HelpCircle, BookOpen, UserCheck, FileCheck } from 'lucide-react';
+import type { TimetableData, DayKey, SubjectDetail } from './types';
 import { DEMO_TIMETABLE } from './data/demoTimetable';
 import { calculateActiveSchedule, getCurrentDayKey } from './utils/scheduleCalculator';
 import { ActiveLectureCard } from './components/ActiveLectureCard';
 import { DayScheduleView } from './components/DayScheduleView';
+import { AcademicOverviewCard } from './components/AcademicOverviewCard';
+import { SubjectDirectoryView } from './components/SubjectDirectoryView';
+import { FacultyDirectoryView } from './components/FacultyDirectoryView';
+import { ExamsAndGuidelinesView } from './components/ExamsAndGuidelinesView';
 import { UploadModal } from './components/UploadModal';
 import { AdBanner } from './components/AdBanner';
 import { LegalModal } from './components/LegalModal';
+
+type ActiveViewTab = 'schedule' | 'subjects' | 'faculty' | 'exams';
 
 export function App() {
   const [timetable, setTimetable] = useState<TimetableData>(() => {
@@ -22,6 +28,7 @@ export function App() {
     return DEMO_TIMETABLE;
   });
 
+  const [activeTab, setActiveTab] = useState<ActiveViewTab>('schedule');
   const [selectedDay, setSelectedDay] = useState<DayKey>(() => getCurrentDayKey());
   const [selectedBatch, setSelectedBatch] = useState<string>('ALL');
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -49,6 +56,13 @@ export function App() {
   const handleTimetableLoaded = (newData: TimetableData) => {
     setTimetable(newData);
     setSelectedBatch('ALL');
+  };
+
+  const handleUpdateSubjects = (updatedSubjects: SubjectDetail[]) => {
+    setTimetable(prev => ({
+      ...prev,
+      subjects: updatedSubjects
+    }));
   };
 
   const handleExportJSON = () => {
@@ -82,7 +96,7 @@ export function App() {
               <div className="flex items-center gap-1.5">
                 <h1 className="text-base font-black tracking-tight text-white m-0">TimeTable</h1>
                 <span className="text-[10px] px-1.5 py-0.2 font-extrabold uppercase bg-indigo-500/20 text-indigo-400 rounded-md border border-indigo-500/30">
-                  AI
+                  AI Portal
                 </span>
               </div>
               <p className="text-[11px] text-slate-400 truncate max-w-[180px] sm:max-w-xs">
@@ -126,35 +140,131 @@ export function App() {
         {/* Top AdSense Banner (Responsive Leaderboard) */}
         <AdBanner slotType="top-banner" />
 
+        {/* Academic Overview Card (Institution, Branch, Base Room, Coordinator) */}
+        <AcademicOverviewCard
+          metadata={timetable.metadata}
+          totalSubjects={timetable.subjects?.length || 0}
+          totalFaculty={timetable.faculty?.length || 0}
+        />
+
         {/* Real-time Current Lecture Card */}
-        <section className="mt-2">
+        <section className="mb-6">
           <ActiveLectureCard state={activeState} selectedBatch={selectedBatch} />
         </section>
 
+        {/* Primary Navigation Tabs */}
+        <div className="flex items-center gap-1 overflow-x-auto pb-1 mb-5 border-b border-slate-800 scrollbar-none">
+          <button
+            onClick={() => setActiveTab('schedule')}
+            className={`py-2 px-3.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+              activeTab === 'schedule'
+                ? 'bg-indigo-600 text-white shadow'
+                : 'text-slate-400 hover:text-white hover:bg-slate-900'
+            }`}
+          >
+            <Calendar className="w-3.5 h-3.5" />
+            <span>Weekly Schedule</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('subjects')}
+            className={`py-2 px-3.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+              activeTab === 'subjects'
+                ? 'bg-indigo-600 text-white shadow'
+                : 'text-slate-400 hover:text-white hover:bg-slate-900'
+            }`}
+          >
+            <BookOpen className="w-3.5 h-3.5" />
+            <span>Courses & Attendance</span>
+            {timetable.subjects?.length > 0 && (
+              <span className="text-[10px] px-1.5 py-0.2 bg-slate-800 rounded-full text-slate-300">
+                {timetable.subjects.length}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setActiveTab('faculty')}
+            className={`py-2 px-3.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+              activeTab === 'faculty'
+                ? 'bg-indigo-600 text-white shadow'
+                : 'text-slate-400 hover:text-white hover:bg-slate-900'
+            }`}
+          >
+            <UserCheck className="w-3.5 h-3.5" />
+            <span>Faculty Directory</span>
+            {timetable.faculty?.length > 0 && (
+              <span className="text-[10px] px-1.5 py-0.2 bg-slate-800 rounded-full text-slate-300">
+                {timetable.faculty.length}
+              </span>
+            )}
+          </button>
+
+          {(timetable.exams?.length || timetable.guidelines?.length) ? (
+            <button
+              onClick={() => setActiveTab('exams')}
+              className={`py-2 px-3.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                activeTab === 'exams'
+                  ? 'bg-indigo-600 text-white shadow'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-900'
+              }`}
+            >
+              <FileCheck className="w-3.5 h-3.5" />
+              <span>Exams & Rules</span>
+            </button>
+          ) : null}
+        </div>
+
+        {/* Tab View Contents */}
+        {activeTab === 'schedule' && (
+          <section>
+            <div className="flex items-center justify-between mb-1">
+              <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-indigo-400" />
+                Timetable Periods
+              </h2>
+              <span className="text-xs text-slate-500">
+                {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+              </span>
+            </div>
+
+            <DayScheduleView
+              data={timetable}
+              selectedDay={selectedDay}
+              onSelectDay={setSelectedDay}
+              selectedBatch={selectedBatch}
+              onSelectBatch={setSelectedBatch}
+              onUpdateTimetable={setTimetable}
+            />
+          </section>
+        )}
+
+        {activeTab === 'subjects' && (
+          <section>
+            <SubjectDirectoryView
+              subjects={timetable.subjects || []}
+              onUpdateSubjects={handleUpdateSubjects}
+            />
+          </section>
+        )}
+
+        {activeTab === 'faculty' && (
+          <section>
+            <FacultyDirectoryView faculty={timetable.faculty || []} />
+          </section>
+        )}
+
+        {activeTab === 'exams' && (
+          <section>
+            <ExamsAndGuidelinesView
+              exams={timetable.exams || []}
+              guidelines={timetable.guidelines || []}
+            />
+          </section>
+        )}
+
         {/* In-feed Ad Banner */}
         <AdBanner slotType="in-feed" />
-
-        {/* Day Schedule View & Batch Filter */}
-        <section>
-          <div className="flex items-center justify-between mb-1">
-            <h2 className="text-base font-bold text-white flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-indigo-400" />
-              Weekly Schedule
-            </h2>
-            <span className="text-xs text-slate-500">
-              {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-            </span>
-          </div>
-
-          <DayScheduleView
-            data={timetable}
-            selectedDay={selectedDay}
-            onSelectDay={setSelectedDay}
-            selectedBatch={selectedBatch}
-            onSelectBatch={setSelectedBatch}
-            onUpdateTimetable={setTimetable}
-          />
-        </section>
       </main>
 
       {/* Sticky Bottom AdSense Anchor */}

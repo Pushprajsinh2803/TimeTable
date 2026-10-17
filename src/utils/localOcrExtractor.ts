@@ -300,19 +300,97 @@ export function parseRawTimetableText(rawText: string): TimetableData {
     }
   }
 
+  // Extract subjects and faculty catalogs from parsed schedule
+  const subjectMap = new Map<string, { faculty: string; room?: string; count: number; type: ClassType }>();
+  const facultyMap = new Map<string, Set<string>>();
+
+  Object.values(daysData).forEach(dayList => {
+    dayList.forEach(item => {
+      if (item.type !== 'Break' && item.subject) {
+        const existing = subjectMap.get(item.subject);
+        if (existing) {
+          existing.count += 1;
+        } else {
+          subjectMap.set(item.subject, {
+            faculty: item.teacher || 'Department Faculty',
+            room: item.room,
+            count: 1,
+            type: item.type
+          });
+        }
+
+        if (item.teacher) {
+          const teacherSubs = facultyMap.get(item.teacher) || new Set<string>();
+          teacherSubs.add(item.subject);
+          facultyMap.set(item.teacher, teacherSubs);
+        }
+      }
+    });
+  });
+
+  const subjects = Array.from(subjectMap.entries()).map(([name, info], idx) => ({
+    code: `SUB-${101 + idx}`,
+    name,
+    shortName: name.length > 15 ? name.split(' ').map(w => w[0]).join('') : name,
+    faculty: info.faculty,
+    initials: info.faculty.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 3),
+    credits: info.type === 'Lab' ? 2 : 4,
+    weeklyHours: info.count,
+    type: info.type,
+    room: info.room,
+    attendedClasses: Math.round(info.count * 3),
+    totalClasses: Math.round(info.count * 4)
+  }));
+
+  const faculty = Array.from(facultyMap.entries()).map(([teacherName, subs], idx) => ({
+    id: `fac-${idx + 1}`,
+    name: teacherName,
+    initials: teacherName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 3),
+    designation: 'Faculty Instructor',
+    subjects: Array.from(subs)
+  }));
+
+  const batches = Array.from(detectedBatches).map((batchId, idx) => ({
+    id: batchId,
+    name: `Batch ${batchId}`,
+    rollRange: `Allotment ${idx + 1}`
+  }));
+
+  // Attempt header metadata detection from top lines
+  let institution = '';
+  let branch = '';
+  let semester = '';
+  let section = '';
+
+  for (const l of lines.slice(0, 6)) {
+    if (/university|institute|college|school/i.test(l) && !institution) institution = l;
+    if (/computer|engineering|science|arts|technology|aids|cse|it|mech/i.test(l) && !branch) branch = l;
+    if (/sem|semester|\b\d+(?:st|nd|rd|th)\b/i.test(l) && !semester) semester = l;
+    if (/division|section|div|sec/i.test(l) && !section) section = l;
+  }
+
+  const guidelines = lines.filter(l => /attendance|rule|dress|recess|mandatory|notice|contact/i.test(l));
+
   const now = new Date().toISOString();
   return {
     metadata: {
       id: 'tt_' + Date.now(),
-      title: 'Uploaded Timetable',
-      institution: '',
-      branch: '',
-      semester: '',
-      section: '',
+      title: branch || institution || 'Imported Academic Timetable',
+      institution: institution || 'Academic Institute',
+      branch: branch || 'Department of Engineering',
+      semester: semester || 'Current Semester',
+      section: section || 'Division 1',
       createdAt: now,
       updatedAt: now
     },
     availableBatches: Array.from(detectedBatches),
+    subjects,
+    faculty,
+    batches,
+    guidelines: guidelines.length > 0 ? guidelines : [
+      'Minimum 75% attendance required for semester examinations.',
+      'Always refer to the official notice board for last-minute room adjustments.'
+    ],
     days: daysData
   };
 }

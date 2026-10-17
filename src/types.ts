@@ -17,10 +17,52 @@ export interface TimetableItem {
   type: ClassType;
   room?: string;
   teacher?: string;
+  initials?: string;
   code?: string;
   notes?: string;
   batch?: string; // 'ALL' or specific batch
   batches?: BatchInfo[]; // Sub-batches for parallel lab sessions
+}
+
+export interface SubjectDetail {
+  code: string;
+  name: string;
+  shortName?: string;
+  faculty: string;
+  initials?: string;
+  credits?: number;
+  weeklyHours?: number;
+  type?: ClassType;
+  room?: string;
+  attendedClasses?: number;
+  totalClasses?: number;
+}
+
+export interface FacultyDetail {
+  id: string;
+  name: string;
+  initials: string;
+  designation?: string;
+  subjects: string[];
+  email?: string;
+  cabin?: string;
+}
+
+export interface BatchDetail {
+  id: string;
+  name: string;
+  rollRange?: string;
+  baseLab?: string;
+}
+
+export interface ExamItem {
+  id: string;
+  date: string;
+  time: string;
+  subject: string;
+  code?: string;
+  room?: string;
+  faculty?: string;
 }
 
 export interface ScheduleMetadata {
@@ -30,6 +72,11 @@ export interface ScheduleMetadata {
   branch?: string;
   semester?: string;
   section?: string;
+  academicYear?: string;
+  classCoordinator?: string;
+  coordinatorContact?: string;
+  baseRoom?: string;
+  effectiveDate?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -38,6 +85,11 @@ export interface TimetableData {
   metadata: ScheduleMetadata;
   days: Record<DayKey, TimetableItem[]>;
   availableBatches: string[];
+  subjects: SubjectDetail[];
+  faculty: FacultyDetail[];
+  batches: BatchDetail[];
+  exams?: ExamItem[];
+  guidelines?: string[];
 }
 
 export interface ActiveClassState {
