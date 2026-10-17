@@ -106,18 +106,27 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onTim
         setProgressStatus('Reading document text...');
         setProgressPercent(15);
         try {
-          const arrayBuffer = await selectedFile.arrayBuffer();
-          const pdfjsLib = await import('pdfjs-dist');
-          if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs`;
-          }
-          const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-          const pdf = await loadingTask.promise;
-          for (let i = 1; i <= Math.min(pdf.numPages, 3); i++) {
-            const page = await pdf.getPage(i);
-            const textContent = await page.getTextContent();
-            extractedPdfText += textContent.items.map((item: any) => item.str || '').join(' ') + '\n';
-          }
+          const timeoutPromise = new Promise<string>((resolve) => setTimeout(() => resolve(''), 1500));
+          const extractPromise = (async () => {
+            const arrayBuffer = await selectedFile.arrayBuffer();
+            const pdfjsLib = await import('pdfjs-dist');
+            if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
+              pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+            }
+            const loadingTask = (pdfjsLib as any).getDocument({
+              data: arrayBuffer,
+              useWorkerFetch: false
+            });
+            const pdf = await loadingTask.promise;
+            let text = '';
+            for (let i = 1; i <= Math.min(pdf.numPages, 3); i++) {
+              const page = await pdf.getPage(i);
+              const textContent = await page.getTextContent();
+              text += textContent.items.map((item: any) => item.str || '').join(' ') + '\n';
+            }
+            return text;
+          })();
+          extractedPdfText = await Promise.race([extractPromise, timeoutPromise]);
         } catch (pdfErr) {
           console.warn('PDF text extraction error:', pdfErr);
         }

@@ -67,7 +67,11 @@ export function App() {
   const handleTimetableLoaded = (newData: TimetableData) => {
     setTimetable(newData);
     setSelectedBatch('ALL');
-    setSelectedDay(getCurrentDayKey());
+    const day = getCurrentDayKey();
+    setSelectedDay(day === 'sunday' ? 'monday' : day);
+    if (day === 'sunday') {
+      setActiveTab('weekly');
+    }
   };
 
   const handleUpdateSubjects = (updatedSubjects: SubjectDetail[]) => {
