@@ -4,7 +4,8 @@ import { DEMO_TIMETABLE } from './data/demoTimetable';
 import { calculateActiveSchedule, getCurrentDayKey } from './utils/scheduleCalculator';
 import { Header } from './components/Header';
 import { LiveTimerBanner } from './components/LiveTimerBanner';
-import { DayScheduleView } from './components/DayScheduleView';
+import { TodayView } from './components/TodayView';
+import { WeeklyView } from './components/WeeklyView';
 import { AcademicOverviewCard } from './components/AcademicOverviewCard';
 import { SubjectDirectoryView } from './components/SubjectDirectoryView';
 import { FacultyDirectoryView } from './components/FacultyDirectoryView';
@@ -15,7 +16,7 @@ import type { MainNavTab } from './components/BottomNavigation';
 import { UploadModal } from './components/UploadModal';
 import { AdBanner } from './components/AdBanner';
 import { LegalModal } from './components/LegalModal';
-import { ShieldCheck, HelpCircle, Sparkles } from 'lucide-react';
+import { ShieldCheck, HelpCircle } from 'lucide-react';
 
 export function App() {
   const [timetable, setTimetable] = useState<TimetableData>(() => {
@@ -104,7 +105,7 @@ export function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-4">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-4 space-y-4">
         {/* Top AdSense Banner */}
         <AdBanner slotType="top-banner" />
 
@@ -115,58 +116,35 @@ export function App() {
           totalFaculty={timetable.faculty?.length || 0}
         />
 
-        {/* Live Timer Banner (The pu-timetable signature countdown) */}
-        <LiveTimerBanner
-          state={activeState}
-          selectedBatch={selectedBatch}
-          onOpenDetails={setSelectedSubject}
-        />
+        {/* Live Timer Banner (shown on non-today tabs so user always has live context) */}
+        {activeTab !== 'today' && (
+          <LiveTimerBanner
+            state={activeState}
+            selectedBatch={selectedBatch}
+            onOpenDetails={setSelectedSubject}
+          />
+        )}
 
         {/* In-feed Ad Banner */}
         <AdBanner slotType="in-feed" />
 
-        {/* Tab View: Today's Schedule */}
+        {/* Tab View: Today's Schedule with 2-Column Split Partitions */}
         {activeTab === 'today' && (
           <section>
-            <div className="flex items-center justify-between mb-3 px-1">
-              <div>
-                <h2 className="text-lg font-black text-white flex items-center gap-2">
-                  <Sparkles size={16} className="text-indigo-400" />
-                  Today's Classes
-                </h2>
-                <p className="text-xs text-slate-400 capitalize">
-                  {activeDayKey} schedule &bull; {todaysItems.length} sessions
-                </p>
-              </div>
-            </div>
-
-            <DayScheduleView
+            <TodayView
               data={timetable}
-              selectedDay={activeDayKey}
-              onSelectDay={() => {}}
               selectedBatch={selectedBatch}
               onSelectBatch={setSelectedBatch}
               onOpenDetails={setSelectedSubject}
+              currentTime={currentTime}
             />
           </section>
         )}
 
-        {/* Tab View: Full Weekly Timetable */}
+        {/* Tab View: Full Weekly Timetable with Day Timeline & Matrix Grid Partitions */}
         {activeTab === 'weekly' && (
           <section>
-            <div className="flex items-center justify-between mb-3 px-1">
-              <div>
-                <h2 className="text-lg font-black text-white flex items-center gap-2">
-                  <Sparkles size={16} className="text-indigo-400" />
-                  Weekly Schedule
-                </h2>
-                <p className="text-xs text-slate-400">
-                  Select a day to view full period timeline
-                </p>
-              </div>
-            </div>
-
-            <DayScheduleView
+            <WeeklyView
               data={timetable}
               selectedDay={selectedDay}
               onSelectDay={setSelectedDay}

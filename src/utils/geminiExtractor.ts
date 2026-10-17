@@ -1,59 +1,94 @@
 import type { TimetableData, SubjectDetail, FacultyDetail, BatchDetail, ExamItem } from '../types';
 
-export const SYSTEM_PROMPT = `Analyze the timetable image/document. Extract all academic data into strict raw JSON:
+export const SYSTEM_PROMPT = `You are an expert university academic timetable parsing engine.
+Analyze the timetable image or PDF document. Extract all academic data into strict, valid JSON matching this schema:
+
 {
   "metadata": {
-    "title": "Course / Branch / Sem",
-    "institution": "University / Institute name",
-    "branch": "Branch name",
-    "semester": "Semester",
-    "section": "Section / Division (e.g. QC 1)",
-    "baseRoom": "Classroom",
-    "classCoordinator": "Coordinator name",
-    "effectiveDate": "w.e.f date"
+    "title": "Full Academic Title (e.g. B.Tech Computer Science & AI-DS Sem 6)",
+    "institution": "University / Institute name (e.g. Parul Institute of Engineering & Technology)",
+    "branch": "Branch name (e.g. Computer Science & AI-DS)",
+    "semester": "Semester (e.g. 6th Semester)",
+    "section": "Section or Division (e.g. Division QC 1)",
+    "academicYear": "Academic Year (e.g. 2026-27)",
+    "baseRoom": "Base Classroom (e.g. Room N-207, Block A)",
+    "classCoordinator": "Class Coordinator / Faculty Mentor Name",
+    "coordinatorContact": "Coordinator Email or Phone",
+    "effectiveDate": "w.e.f Date (e.g. 15 Jan 2026)"
   },
-  "availableBatches": ["Batch 1", "Batch 2"],
+  "availableBatches": ["QC 1.1", "QC 1.2"],
   "subjects": [
     {
-      "code": "Course Code",
-      "name": "Full Course Name",
-      "faculty": "Faculty Name",
-      "initials": "Initials",
+      "code": "Course Code (e.g. 303105342)",
+      "name": "Full Course Name (e.g. Natural Language Processing)",
+      "shortName": "Short Code (e.g. NLP)",
+      "faculty": "FULL Faculty Name (e.g. Dr. Priya Sharma)",
+      "initials": "Initials (e.g. PS)",
       "credits": 4,
-      "weeklyHours": 4,
-      "type": "Lecture"
+      "weeklyHours": 5,
+      "type": "Lecture",
+      "room": "Room / Lab venue"
     }
   ],
   "faculty": [
     {
       "id": "fac-1",
-      "name": "Faculty Name",
-      "initials": "Initials",
-      "subjects": ["Subject"]
+      "name": "Full Faculty Name with Title (e.g. Dr. Nilesh Kumar Jain, Prof. Rajesh N. Salvi)",
+      "initials": "Initials (e.g. NKJ, RNS)",
+      "designation": "Designation (e.g. Associate Professor / Assistant Professor)",
+      "subjects": ["Subjects or labs taught by this teacher"],
+      "email": "Official email if present",
+      "cabin": "Cabin / Office location if present"
     }
   ],
   "batches": [
     {
-      "id": "Batch 1",
-      "name": "Batch Name",
-      "rollRange": "Roll numbers"
+      "id": "QC 1.1",
+      "name": "Batch 1 (QC 1.1)",
+      "rollRange": "Roll numbers if mentioned",
+      "baseLab": "Assigned lab if mentioned"
     }
   ],
-  "exams": [],
-  "guidelines": [],
+  "exams": [
+    {
+      "id": "exam-1",
+      "date": "24 Sep 2026",
+      "time": "02:45 PM – 04:15 PM",
+      "subject": "Subject Name",
+      "code": "Course Code",
+      "room": "Exam Room"
+    }
+  ],
+  "guidelines": [
+    "Important circular guideline or notice (e.g. 75% attendance mandatory, reporting time, lab rules)"
+  ],
   "days": {
     "monday": [
       {
         "id": "mon-1",
-        "start": "09:00",
-        "end": "10:00",
+        "start": "09:30",
+        "end": "10:30",
         "subject": "Subject Name",
         "type": "Lecture",
-        "room": "Room",
-        "teacher": "Teacher",
-        "code": "Code",
+        "room": "Room N-207",
+        "teacher": "FULL Faculty Name (NOT just initials!)",
+        "initials": "Initials (e.g. RNS)",
+        "code": "Course Code",
         "batch": "ALL",
-        "batches": []
+        "batches": [
+          {
+            "id": "QC 1.1",
+            "sub": "NLP Lab",
+            "room": "Lab 3",
+            "teacher": "FULL Faculty Name"
+          },
+          {
+            "id": "QC 1.2",
+            "sub": "CV Lab",
+            "room": "Lab 5",
+            "teacher": "FULL Faculty Name"
+          }
+        ]
       }
     ],
     "tuesday": [],
@@ -64,10 +99,22 @@ export const SYSTEM_PROMPT = `Analyze the timetable image/document. Extract all 
     "sunday": []
   }
 }
-Rules:
-- Types: Lecture, Lab, Tutorial, Break, Exam.
-- Start and end times in 24hr or 12hr format.
-- Output ONLY valid JSON with no markdown wrapping.`;
+
+CRITICAL EXTRACTION RULES:
+1. FACULTY MAPPING IS MANDATORY:
+   - In university timetable circulars, table cells often have short initials (e.g. RNS, ZJ, RM, NKJ, SP, BR, AP).
+   - AT THE BOTTOM, FOOTER, OR SIDE OF THE DOCUMENT, there is ALWAYS a Faculty Legend / Subject Table that maps these initials to their FULL names (e.g. RNS -> Prof. Rajesh Narendra Salvi).
+   - YOU MUST CROSS-REFERENCE every cell's teacher initials with this legend table and populate the full teacher name in the "teacher" field!
+   - NEVER leave "teacher" empty or blank if initials or names exist in the cell or legend. If no full name is found, put the initials in "teacher".
+   - Extract ALL faculty members found in the legend into the "faculty" array.
+2. SUBJECTS LIST:
+   - Extract all courses with code, full name, credits, and faculty.
+3. LAB BATCH ALLOCATIONS:
+   - When a slot is divided into batches (e.g. Batch 1 / Batch 2 or QC 1.1 / QC 1.2), extract each sub-session in the "batches" array with its respective room, subject, and teacher.
+4. TIME FORMATS:
+   - Use standard 24h format (e.g. "09:30", "14:15") or 12h format (e.g. "09:30 AM", "02:15 PM").
+5. OUTPUT:
+   - Output ONLY valid JSON. No conversational text, no markdown backticks, no explanations.`;
 
 /**
  * Optimizes an image client-side before sending to Gemini:
@@ -204,11 +251,159 @@ export async function extractTimetableFromImage(
   // Normalize structure
   const now = new Date().toISOString();
 
-  const subjects: SubjectDetail[] = parsed.subjects || [];
-  const faculty: FacultyDetail[] = parsed.faculty || [];
-  const batches: BatchDetail[] = parsed.batches || [];
+  const rawSubjects: SubjectDetail[] = parsed.subjects || [];
+  const rawFaculty: FacultyDetail[] = parsed.faculty || [];
+  const rawBatches: BatchDetail[] = parsed.batches || [];
   const exams: ExamItem[] = parsed.exams || [];
   const guidelines: string[] = parsed.guidelines || [];
+
+  // Build bidirectional lookup dictionary for initials -> full faculty name
+  const initialsToName = new Map<string, string>();
+  const nameToInitials = new Map<string, string>();
+
+  rawFaculty.forEach(f => {
+    if (f.initials && f.name) {
+      initialsToName.set(f.initials.trim().toUpperCase(), f.name.trim());
+      nameToInitials.set(f.name.trim().toLowerCase(), f.initials.trim());
+    }
+  });
+
+  rawSubjects.forEach(s => {
+    if (s.initials && s.faculty) {
+      initialsToName.set(s.initials.trim().toUpperCase(), s.faculty.trim());
+    }
+  });
+
+  const rawDays = parsed.days || {};
+  const dayKeys = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
+
+  // Process days and resolve all teacher initials to full names
+  const normalizedDays: Record<string, any[]> = {};
+  const discoveredFaculty = new Map<string, { name: string; initials: string; subjects: Set<string> }>();
+
+  // Pre-seed discovered faculty with existing faculty list
+  rawFaculty.forEach(f => {
+    if (f.name) {
+      discoveredFaculty.set(f.name.trim().toLowerCase(), {
+        name: f.name.trim(),
+        initials: f.initials || '',
+        subjects: new Set(f.subjects || [])
+      });
+    }
+  });
+
+  for (const day of dayKeys) {
+    const items: any[] = rawDays[day] || [];
+    normalizedDays[day] = items.map((item, idx) => {
+      let resolvedTeacher = (item.teacher || '').trim();
+      let resolvedInitials = (item.initials || '').trim();
+
+      // Check if teacher is just initials (e.g. 2-5 uppercase chars)
+      const isTeacherInitials = /^[A-Z]{2,5}$/.test(resolvedTeacher);
+      if (isTeacherInitials && !resolvedInitials) {
+        resolvedInitials = resolvedTeacher;
+      }
+
+      // Cross-reference initials to find full teacher name
+      if (resolvedInitials && initialsToName.has(resolvedInitials.toUpperCase())) {
+        resolvedTeacher = initialsToName.get(resolvedInitials.toUpperCase())!;
+      } else if (isTeacherInitials && initialsToName.has(resolvedTeacher.toUpperCase())) {
+        resolvedTeacher = initialsToName.get(resolvedTeacher.toUpperCase())!;
+      }
+
+      // If we have a full teacher name, keep track of it for faculty directory
+      if (resolvedTeacher && !isTeacherInitials) {
+        const key = resolvedTeacher.toLowerCase();
+        if (!discoveredFaculty.has(key)) {
+          discoveredFaculty.set(key, {
+            name: resolvedTeacher,
+            initials: resolvedInitials,
+            subjects: new Set()
+          });
+        }
+        if (item.subject) {
+          discoveredFaculty.get(key)!.subjects.add(item.subject);
+        }
+      }
+
+      // Resolve batches inside lab periods
+      const resolvedBatches = Array.isArray(item.batches)
+        ? item.batches.map((b: any) => {
+            let bTeacher = (b.teacher || '').trim();
+            const bInitials = /^[A-Z]{2,5}$/.test(bTeacher) ? bTeacher : '';
+            if (bInitials && initialsToName.has(bInitials.toUpperCase())) {
+              bTeacher = initialsToName.get(bInitials.toUpperCase())!;
+            }
+            if (bTeacher) {
+              const bKey = bTeacher.toLowerCase();
+              if (!discoveredFaculty.has(bKey)) {
+                discoveredFaculty.set(bKey, {
+                  name: bTeacher,
+                  initials: bInitials,
+                  subjects: new Set([b.sub || item.subject])
+                });
+              } else if (b.sub) {
+                discoveredFaculty.get(bKey)!.subjects.add(b.sub);
+              }
+            }
+            return {
+              id: b.id || 'Batch',
+              sub: b.sub || item.subject || 'Practical',
+              room: b.room || item.room || '',
+              teacher: bTeacher || resolvedTeacher
+            };
+          })
+        : [];
+
+      return {
+        id: item.id || `${day}-${idx + 1}`,
+        start: item.start || '09:00',
+        end: item.end || '10:00',
+        subject: item.subject || 'Lecture',
+        type: item.type || 'Lecture',
+        room: item.room || '',
+        teacher: resolvedTeacher,
+        initials: resolvedInitials,
+        code: item.code || '',
+        notes: item.notes || '',
+        batch: item.batch || 'ALL',
+        batches: resolvedBatches
+      };
+    });
+  }
+
+  // Synthesize rich faculty list if raw faculty was empty or incomplete
+  const finalFaculty: FacultyDetail[] = Array.from(discoveredFaculty.values()).map((f, i) => ({
+    id: `fac-${i + 1}`,
+    name: f.name,
+    initials: f.initials,
+    subjects: Array.from(f.subjects)
+  }));
+
+  // Ensure subjects have full faculty names resolved
+  const finalSubjects: SubjectDetail[] = rawSubjects.map(s => {
+    let facultyName = s.faculty || '';
+    if (s.initials && initialsToName.has(s.initials.toUpperCase())) {
+      facultyName = initialsToName.get(s.initials.toUpperCase())!;
+    }
+    return {
+      code: s.code || '',
+      name: s.name || '',
+      shortName: s.shortName || s.name || '',
+      faculty: facultyName,
+      initials: s.initials || '',
+      credits: s.credits || 4,
+      weeklyHours: s.weeklyHours || 4,
+      type: s.type || 'Lecture',
+      room: s.room || '',
+      attendedClasses: s.attendedClasses || 0,
+      totalClasses: s.totalClasses || 0
+    };
+  });
+
+  const availableBatches: string[] = parsed.availableBatches && parsed.availableBatches.length > 0
+    ? parsed.availableBatches
+    : (rawBatches.length > 0 ? rawBatches.map(b => b.id) : ['ALL']);
 
   const timetable: TimetableData = {
     metadata: {
@@ -226,21 +421,13 @@ export async function extractTimetableFromImage(
       createdAt: now,
       updatedAt: now
     },
-    availableBatches: parsed.availableBatches || [],
-    subjects,
-    faculty,
-    batches,
+    availableBatches,
+    subjects: finalSubjects,
+    faculty: finalFaculty.length > 0 ? finalFaculty : rawFaculty,
+    batches: rawBatches,
     exams,
     guidelines,
-    days: {
-      monday: parsed.days?.monday || [],
-      tuesday: parsed.days?.tuesday || [],
-      wednesday: parsed.days?.wednesday || [],
-      thursday: parsed.days?.thursday || [],
-      friday: parsed.days?.friday || [],
-      saturday: parsed.days?.saturday || [],
-      sunday: parsed.days?.sunday || []
-    }
+    days: normalizedDays as Record<any, any>
   };
 
   return timetable;
