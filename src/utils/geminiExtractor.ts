@@ -248,7 +248,7 @@ export async function extractTimetableFromImage(
     generationConfig: {
       response_mime_type: "application/json",
       temperature: 0.1,
-      max_output_tokens: 4000
+      max_output_tokens: 16384
     }
   };
 
@@ -270,9 +270,53 @@ export async function extractTimetableFromImage(
     throw new Error("No timetable content could be recognized in the document.");
   }
 
-  // Clean backticks
-  const cleanedText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-  const parsed = JSON.parse(cleanedText);
+  // Safe parse with automatic truncation / bracket repair
+  let parsed: any;
+  try {
+    const cleanedText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+    parsed = JSON.parse(cleanedText);
+  } catch (parseErr) {
+    console.warn("Direct JSON parse failed, repairing truncated structure...", parseErr);
+    let cleaned = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+    let balanceBrackets = 0;
+    let balanceBraces = 0;
+    let inString = false;
+    let escaped = false;
+
+    for (let i = 0; i < cleaned.length; i++) {
+      const ch = cleaned[i];
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+      if (ch === '\\') {
+        escaped = true;
+        continue;
+      }
+      if (ch === '"') {
+        inString = !inString;
+        continue;
+      }
+      if (!inString) {
+        if (ch === '{') balanceBraces++;
+        else if (ch === '}') balanceBraces--;
+        else if (ch === '[') balanceBrackets++;
+        else if (ch === ']') balanceBrackets--;
+      }
+    }
+
+    if (inString) cleaned += '"';
+    while (balanceBrackets > 0) {
+      cleaned += ']';
+      balanceBrackets--;
+    }
+    while (balanceBraces > 0) {
+      cleaned += '}';
+      balanceBraces--;
+    }
+
+    parsed = JSON.parse(cleaned);
+  }
 
   // Normalize structure
   const now = new Date().toISOString();
